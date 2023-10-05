@@ -1,7 +1,7 @@
 <template>
   <button
-    type=""
-    class="bg-neutral-900 hover:bg-black text-white font-semibold py-2 px-4 w-full"
+    type="button"
+    class="bg-amber-600 hover:bg-amber-500 text-white font-semibold py-2 px-4 w-fit"
   >
     {{ text }}
   </button>

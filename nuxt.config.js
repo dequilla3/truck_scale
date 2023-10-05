@@ -2,7 +2,7 @@ export default {
   // Global page headers: https://go.nuxtjs.dev/config-head
   ssr: false,
   head: {
-    title: 'app_tsis_integration',
+    title: 'Truck Scale',
     htmlAttrs: {
       lang: 'en'
     },
@@ -19,12 +19,12 @@ export default {
 
   // Global CSS: https://go.nuxtjs.dev/config-css
   css: [
-    // "@/assets/scss/main.scss",
+    "@/assets/scss/main.scss",
+    "@fortawesome/fontawesome-svg-core/styles.css",
   ],
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
-  plugins: [
-  ],
+  plugins: ["~/plugins/fontawesome.js"],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
   components: true,
@@ -36,8 +36,7 @@ export default {
   ],
 
   // Modules: https://go.nuxtjs.dev/config-modules
-  modules: [
-  ],
+  modules: ['@nuxtjs/axios'],
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
@@ -45,5 +44,9 @@ export default {
 
   server: {
     port: 7000,
-  }
+  },
+
+  axios: {
+    baseUrl: "http://172.16.28.15:5000",
+  },
 };
