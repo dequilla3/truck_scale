@@ -30,7 +30,10 @@
     </my-table>
 
     <!-- MODAL -->
-    <lg-modal :title="modalTitle" ref="modal">
+    <lg-modal ref="modal">
+      <template v-slot:title>
+        <div class="pl-40">{{ modalTitle }}</div>
+      </template>
       <form @submit="onSubmitModal" class="pl-40 pr-40 pb-20">
         <input-group
           v-model="form.fname"
@@ -52,12 +55,13 @@
         />
         <button-primary
           type="submit"
-          class="w-44 text-sm mt-4"
+          class="w-44 text-sm mt-8"
           :text="action == 'ADD' ? 'Add Supplier' : 'Update Supplier'"
         />
       </form>
     </lg-modal>
     <MessageBoxInfo :title="alertMsg" ref="msgBoxInfo" />
+    <ConfirmationModal ref="confirmModal" />
   </main-container>
 </template>
 <script>
@@ -91,7 +95,7 @@ export default {
       this.action = action;
 
       if (action == "UPDATE") {
-        this.$refs.modal.showModal();
+        this.$refs.modal.showModal().then((val) => {});
         this.modalTitle = "Update Supplier";
         this.form = {
           id: rowValue.id,
@@ -119,6 +123,7 @@ export default {
 
     async onSubmitModal(e) {
       e.preventDefault();
+
       if (this.action == "UPDATE") {
         axios({
           method: "PUT",
@@ -135,20 +140,29 @@ export default {
           this.$refs.modal.hideModal();
         });
       } else if (this.action == "ADD") {
-        axios({
-          method: "POST",
-          url: `${this.$axios.defaults.baseURL}/addSupplier`,
-          data: {
-            firstname: this.form.fname.toUpperCase(),
-            lastname: this.form.lname.toUpperCase(),
-            address: this.form.address.toUpperCase(),
-          },
-        }).then((res) => {
-          this.alertMsg = "Successfully Added!";
-          this.fetchSuppliers();
-          this.$refs.msgBoxInfo.showAlert();
-          this.$refs.modal.hideModal();
-        });
+        this.$refs.confirmModal
+          .showModal(
+            "Please confirm!",
+            "Are you sure you want to add Supplier?",
+            "Yes, Proceed!"
+          )
+          .then((res) => {
+            if (!res) return;
+            axios({
+              method: "POST",
+              url: `${this.$axios.defaults.baseURL}/addSupplier`,
+              data: {
+                firstname: this.form.fname.toUpperCase(),
+                lastname: this.form.lname.toUpperCase(),
+                address: this.form.address.toUpperCase(),
+              },
+            }).then((res) => {
+              this.alertMsg = "Successfully Added!";
+              this.fetchSuppliers();
+              this.$refs.msgBoxInfo.showAlert();
+              this.$refs.modal.hideModal();
+            });
+          });
       }
     },
   },

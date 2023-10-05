@@ -1,5 +1,5 @@
 <template>
-  <div class="main-container rounded static">
+  <div class="main-container rounded">
     <slot />
   </div>
 </template>

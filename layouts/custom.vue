@@ -1,6 +1,6 @@
 <template>
   <div class="">
-    <div class="sidebar w-64 absolute shadow-2xl">
+    <div class="sidebar w-64 absolute shadow-md">
       <div class="text-3xl font-bold drop-shadow-lg text-center pt-10 pb-10">
         <a href="/admin/supplier" class="pt-6 pb-6 primary-color">
           <font-awesome-icon :icon="['fas', 'weight-scale']" /> Truck Scale</a
