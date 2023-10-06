@@ -1,10 +1,7 @@
 <template>
-  <div>
-    <div v-if="show" class="z-0 top-5 bg-black modal-overlay"></div>
-    <div
-      v-if="show"
-      class="top-0 bg-black modal modal-dialog rounded-md h-fit shadow-md"
-    >
+  <div class="z-30">
+    <div v-if="show" class="top-5 bg-black modal-overlay"></div>
+    <div v-if="show" class="top-0 bg-black modal modal-dialog rounded-md h-fit shadow-md">
       <button
         type="button"
         class="absolute top-5 right-5 text-2xl hover:drop-shadow-xl"
@@ -48,8 +45,7 @@
   </div>
 </template>
 <script>
-var myRes;
-var myRej;
+let myRes;
 export default {
   data() {
     return {

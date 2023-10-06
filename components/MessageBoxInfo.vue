@@ -1,21 +1,16 @@
 <template>
-  <div
-    v-if="show"
-    class="absolute bottom-10 right-0 w-2/5 bg-teal-100 border-t-4 border-teal-500 rounded-b text-teal-900 px-4 py-3 shadow-md"
-    role="alert"
-  >
+  <div v-if="show" :class="getClass" role="alert">
     <div class="flex">
-      <div class="py-1">
-        <svg
-          class="fill-current h-6 w-6 text-teal-500 mr-4"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-        >
-          <path
-            d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z"
-          />
-        </svg>
-      </div>
+      <font-awesome-icon
+        v-if="success || successDanger"
+        class="text-3xl mr-5"
+        :icon="['fas', 'circle-check']"
+      />
+      <font-awesome-icon
+        v-if="danger"
+        class="text-3xl mr-5"
+        :icon="['fas', 'circle-xmark']"
+      />
       <div>
         <p class="font-bold">{{ title }}</p>
         <p class="text-sm">{{ subTitle }}</p>
@@ -25,24 +20,45 @@
 </template>
 <script>
 export default {
-  props: {
-    title: String,
-    subTitle: String,
-  },
   data() {
     return {
       show: false,
+      title: "",
+      subTitle: "",
+      success: false,
+      danger: false,
+      successDanger: false,
     };
   },
 
   created() {},
 
+  computed: {
+    getClass() {
+      const success = `absolute bottom-10 right-0 w-2/5 bg-green-100 border-t-4 border-green-500 rounded-b text-green-900 px-4 py-3 shadow-md`;
+      const danger = `absolute bottom-10 right-0 w-2/5 bg-red-100 border-t-4 border-red-500 rounded-b text-red-900 px-4 py-3 shadow-md`;
+      const successDanger = `absolute bottom-10 right-0 w-2/5 bg-red-100 border-t-4 border-red-500 rounded-b text-green-700 px-4 py-3 shadow-md`;
+
+      if (this.success) return success;
+      if (this.danger) return danger;
+      if (this.successDanger) return successDanger;
+
+      return "";
+    },
+  },
+
   methods: {
     hideAlert() {
       this.show = false;
     },
-    showAlert() {
+    showAlert({ title, subTitle, success, danger, successDanger }) {
+      this.title = title;
+      this.subTitle = subTitle;
+      this.success = success;
+      this.danger = danger;
+      this.successDanger = successDanger;
       this.show = true;
+
       setTimeout(() => {
         this.hideAlert();
       }, 3000);

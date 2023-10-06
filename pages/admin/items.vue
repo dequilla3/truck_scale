@@ -1,16 +1,16 @@
 <template>
   <main-container>
-    <h1 class="font-semibold drop-shadow-md page_header text-xl">SUPPLIER</h1>
+    <h1 class="font-semibold drop-shadow-md page_header text-xl">ITEMS</h1>
     <br />
     <div class="flex">
       <button-primary
         @click.native="openModal('ADD')"
         class="text-sm mb-2"
-        text="Add Supplier"
+        text="Add Item"
       />
     </div>
     <!-- MAIN TABLE -->
-    <my-table :fields="suppliersFields" :items="suppliers" action>
+    <my-table :fields="itemFields" :items="itemsList" action>
       <template v-slot:actions="{ row }">
         <div class="flex">
           <btn-action
@@ -39,30 +39,24 @@
       <form @submit="onSubmitModal" class="pl-40 pr-40 pb-20">
         <div class="text-sm">
           <input-group
-            v-model="form.fname"
+            v-model="form.itemName"
             class="mt-2"
-            labelName="First Name"
+            labelName="Item Name"
             inputType="text"
             required
           />
           <input-group
-            v-model="form.lname"
+            v-model="form.uom"
             class="mt-2"
-            labelName="Last Name"
+            labelName="UOM"
             inputType="text"
             required
           />
-          <input-group
-            v-model="form.address"
-            class="mt-2"
-            labelName="Address"
-            inputType="text"
-            required
-          />
+
           <button-primary
             type="submit"
             class="w-44 text-sm mt-8"
-            :text="action == 'ADD' ? 'Add Supplier' : 'Update Supplier'"
+            :text="action == 'ADD' ? 'Add Item' : 'Update Item'"
             :load="isLoading"
           />
         </div>
@@ -84,17 +78,16 @@ export default {
 
       form: {
         id: "",
-        fname: "",
-        lname: "",
-        address: "",
+        itemName: "",
+        uom: "",
       },
       action: "",
-      suppliersFields: [
-        { key: "name", label: "Name" },
-        { key: "address", label: "Address" },
+      itemFields: [
+        { key: "itemName", label: "Item Name" },
+        { key: "uom", label: "UOM" },
         { key: "actions", label: "Actions" },
       ],
-      suppliers: [],
+      itemsList: [],
     };
   },
 
@@ -105,28 +98,27 @@ export default {
       this.$refs.modal.showModal();
 
       if (action == "UPDATE") {
-        this.modalTitle = "Update Supplier";
+        this.modalTitle = "Update Item";
         //Populate data on fields
         this.form = {
           id: rowValue.id,
-          fname: rowValue.name.split(" ")[0],
-          lname: rowValue.name.split(" ")[1],
-          address: rowValue.address,
+          itemName: rowValue.itemName,
+          uom: rowValue.uom,
         };
         return;
       }
 
-      this.modalTitle = "Add Supplier";
+      this.modalTitle = "Add Item";
     },
 
-    async fetchSuppliers() {
-      this.suppliers = [];
-      this.$store.dispatch("fetchSuppliers").then((res) => {
-        for (let sup of res) {
-          this.suppliers.push({
-            id: sup.supplierid,
-            name: `${sup.firs_tname} ${sup.last_name}`,
-            address: sup.address,
+    async fetchItem() {
+      this.itemsList = [];
+      this.$store.dispatch("fetchItem").then((res) => {
+        for (let item of res) {
+          this.itemsList.push({
+            id: item.itemid,
+            itemName: item.item_name,
+            uom: item.uom,
           });
         }
       });
@@ -137,19 +129,20 @@ export default {
 
       this.$refs.confirmModal
         .showModal(
+          // @params: title:string, message:string, okTitle:string, danger:boolean
           "Please confirm!",
-          `Are you sure you want to ${this.action.toLocaleLowerCase()} Supplier?`,
+          `Are you sure you want to ${this.action.toLocaleLowerCase()} this item?`,
           "Yes, Proceed!"
         )
         .then((val) => {
           if (!val) return;
 
           if (this.action == "UPDATE") {
-            this.doUpdateSupplier();
+            this.doUpdateItem();
             return;
           }
 
-          this.doAddSupplier();
+          this.doAddItem();
         });
     },
 
@@ -162,15 +155,14 @@ export default {
       };
     },
 
-    doAddSupplier() {
+    doAddItem() {
       this.isLoading = true;
       axios({
         method: "POST",
-        url: `${this.$axios.defaults.baseURL}/addSupplier`,
+        url: `${this.$axios.defaults.baseURL}/addItem`,
         data: {
-          firstname: this.form.fname.toUpperCase(),
-          lastname: this.form.lname.toUpperCase(),
-          address: this.form.address.toUpperCase(),
+          item_name: this.form.itemName.toUpperCase(),
+          uom: this.form.uom.toUpperCase(),
         },
       }).then((res) => {
         this.$refs.msgBoxInfo.showAlert({
@@ -180,20 +172,19 @@ export default {
         });
 
         this.isLoading = false;
-        this.fetchSuppliers();
+        this.fetchItem();
         this.$refs.modal.hideModal();
       });
     },
 
-    doUpdateSupplier() {
+    doUpdateItem() {
       this.isLoading = true;
       axios({
         method: "PUT",
-        url: `${this.$axios.defaults.baseURL}/updateSupplier/${this.form.id}`,
+        url: `${this.$axios.defaults.baseURL}/updateItem/${this.form.id}`,
         data: {
-          firstname: this.form.fname.toUpperCase(),
-          lastname: this.form.lname.toUpperCase(),
-          address: this.form.address.toUpperCase(),
+          item_name: this.form.itemName.toUpperCase(),
+          uom: this.form.uom.toUpperCase(),
         },
       }).then((res) => {
         this.$refs.msgBoxInfo.showAlert({
@@ -201,18 +192,18 @@ export default {
           subTitle: "",
           success: true,
         });
+
         this.isLoading = false;
-        this.fetchSuppliers();
+        this.fetchItem();
         this.$refs.modal.hideModal();
       });
     },
 
     doDeleteSupplier(row) {
       this.isLoading = true;
-
       this.$refs.confirmModal
         .showModal(
-          // @params: title, message, okTitle, danger
+          // @params: title:string, message:string, okTitle:string, danger:boolean
           "Please confirm!",
           "Are you sure you want to delete Supplier?",
           "Yes, Proceed!",
@@ -223,7 +214,7 @@ export default {
 
           axios({
             method: "DELETE",
-            url: `${this.$axios.defaults.baseURL}/deleteSupplier/${row.id}`,
+            url: `${this.$axios.defaults.baseURL}/deleteItem/${row.id}`,
           }).then((res) => {
             this.$refs.msgBoxInfo.showAlert({
               title: "Successfully Deleted!",
@@ -231,7 +222,7 @@ export default {
               successDanger: true,
             });
             this.isLoading = false;
-            this.fetchSuppliers();
+            this.fetchItem();
           });
         });
     },
@@ -240,7 +231,7 @@ export default {
   computed: {},
 
   created() {
-    this.fetchSuppliers();
+    this.fetchItem();
   },
 };
 </script>

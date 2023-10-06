@@ -1,16 +1,16 @@
 <template>
   <main-container>
-    <h1 class="font-semibold drop-shadow-md page_header text-xl">SUPPLIER</h1>
+    <h1 class="font-semibold drop-shadow-md page_header text-xl">DRIVER</h1>
     <br />
     <div class="flex">
       <button-primary
         @click.native="openModal('ADD')"
         class="text-sm mb-2"
-        text="Add Supplier"
+        text="Add Driver"
       />
     </div>
     <!-- MAIN TABLE -->
-    <my-table :fields="suppliersFields" :items="suppliers" action>
+    <my-table :fields="driversFields" :items="drivers" action>
       <template v-slot:actions="{ row }">
         <div class="flex">
           <btn-action
@@ -39,30 +39,24 @@
       <form @submit="onSubmitModal" class="pl-40 pr-40 pb-20">
         <div class="text-sm">
           <input-group
-            v-model="form.fname"
+            v-model="form.firstname"
             class="mt-2"
             labelName="First Name"
             inputType="text"
             required
           />
           <input-group
-            v-model="form.lname"
+            v-model="form.lastname"
             class="mt-2"
             labelName="Last Name"
             inputType="text"
             required
           />
-          <input-group
-            v-model="form.address"
-            class="mt-2"
-            labelName="Address"
-            inputType="text"
-            required
-          />
+
           <button-primary
             type="submit"
             class="w-44 text-sm mt-8"
-            :text="action == 'ADD' ? 'Add Supplier' : 'Update Supplier'"
+            :text="action == 'ADD' ? 'Add Driver' : 'Update Driver'"
             :load="isLoading"
           />
         </div>
@@ -84,17 +78,16 @@ export default {
 
       form: {
         id: "",
-        fname: "",
-        lname: "",
-        address: "",
+        firstname: "",
+        lastname: "",
       },
       action: "",
-      suppliersFields: [
-        { key: "name", label: "Name" },
-        { key: "address", label: "Address" },
+      driversFields: [
+        { key: "firstname", label: "First Name" },
+        { key: "lastname", label: "Last Name" },
         { key: "actions", label: "Actions" },
       ],
-      suppliers: [],
+      drivers: [],
     };
   },
 
@@ -105,28 +98,27 @@ export default {
       this.$refs.modal.showModal();
 
       if (action == "UPDATE") {
-        this.modalTitle = "Update Supplier";
+        this.modalTitle = "Update Driver";
         //Populate data on fields
         this.form = {
           id: rowValue.id,
-          fname: rowValue.name.split(" ")[0],
-          lname: rowValue.name.split(" ")[1],
-          address: rowValue.address,
+          firstname: rowValue.firstname,
+          lastname: rowValue.lastname,
         };
         return;
       }
 
-      this.modalTitle = "Add Supplier";
+      this.modalTitle = "Add Driver";
     },
 
-    async fetchSuppliers() {
-      this.suppliers = [];
-      this.$store.dispatch("fetchSuppliers").then((res) => {
-        for (let sup of res) {
-          this.suppliers.push({
-            id: sup.supplierid,
-            name: `${sup.firs_tname} ${sup.last_name}`,
-            address: sup.address,
+    async fetchDrivers() {
+      this.drivers = [];
+      this.$store.dispatch("fetchDrivers").then((res) => {
+        for (let driver of res) {
+          this.drivers.push({
+            id: driver.driverid,
+            firstname: driver.firstname,
+            lastname: driver.lastname,
           });
         }
       });
@@ -138,39 +130,37 @@ export default {
       this.$refs.confirmModal
         .showModal(
           "Please confirm!",
-          `Are you sure you want to ${this.action.toLocaleLowerCase()} Supplier?`,
+          `Are you sure you want to ${this.action.toLocaleLowerCase()} this Driver?`,
           "Yes, Proceed!"
         )
         .then((val) => {
           if (!val) return;
 
           if (this.action == "UPDATE") {
-            this.doUpdateSupplier();
+            this.doUpdateDriver();
             return;
           }
 
-          this.doAddSupplier();
+          this.doAddDriver();
         });
     },
 
     resetModalFields() {
       this.form = {
         id: "",
-        fname: "",
-        lname: "",
-        address: "",
+        firstname: "",
+        lastname: "",
       };
     },
 
-    doAddSupplier() {
+    doAddDriver() {
       this.isLoading = true;
       axios({
         method: "POST",
-        url: `${this.$axios.defaults.baseURL}/addSupplier`,
+        url: `${this.$axios.defaults.baseURL}/addDriver`,
         data: {
-          firstname: this.form.fname.toUpperCase(),
-          lastname: this.form.lname.toUpperCase(),
-          address: this.form.address.toUpperCase(),
+          firstname: this.form.firstname.toUpperCase(),
+          lastname: this.form.lastname.toUpperCase(),
         },
       }).then((res) => {
         this.$refs.msgBoxInfo.showAlert({
@@ -180,41 +170,45 @@ export default {
         });
 
         this.isLoading = false;
-        this.fetchSuppliers();
+        this.fetchDrivers();
         this.$refs.modal.hideModal();
       });
     },
 
-    doUpdateSupplier() {
+    doUpdateDriver() {
       this.isLoading = true;
       axios({
         method: "PUT",
-        url: `${this.$axios.defaults.baseURL}/updateSupplier/${this.form.id}`,
+        url: `${this.$axios.defaults.baseURL}/updateDriver/${this.form.id}`,
         data: {
-          firstname: this.form.fname.toUpperCase(),
-          lastname: this.form.lname.toUpperCase(),
-          address: this.form.address.toUpperCase(),
+          firstname: this.form.firstname.toUpperCase(),
+          lastname: this.form.lastname.toUpperCase(),
         },
-      }).then((res) => {
-        this.$refs.msgBoxInfo.showAlert({
-          title: "Successfully Updated!",
-          subTitle: "",
-          success: true,
-        });
-        this.isLoading = false;
-        this.fetchSuppliers();
-        this.$refs.modal.hideModal();
-      });
+      }).then(
+        (res) => {
+          this.$refs.msgBoxInfo.showAlert({
+            title: "Successfully Updated!",
+            subTitle: "",
+            success: true,
+          });
+          this.isLoading = false;
+          this.fetchDrivers();
+          this.$refs.modal.hideModal();
+        },
+        (err) => {
+          this.isLoading = false;
+        }
+      );
     },
 
-    doDeleteSupplier(row) {
+    doDeleteDriver(row) {
       this.isLoading = true;
 
       this.$refs.confirmModal
         .showModal(
           // @params: title, message, okTitle, danger
           "Please confirm!",
-          "Are you sure you want to delete Supplier?",
+          "Are you sure you want to delete this Driver?",
           "Yes, Proceed!",
           true
         )
@@ -223,7 +217,7 @@ export default {
 
           axios({
             method: "DELETE",
-            url: `${this.$axios.defaults.baseURL}/deleteSupplier/${row.id}`,
+            url: `${this.$axios.defaults.baseURL}/deleteDriver/${row.id}`,
           }).then((res) => {
             this.$refs.msgBoxInfo.showAlert({
               title: "Successfully Deleted!",
@@ -231,7 +225,7 @@ export default {
               successDanger: true,
             });
             this.isLoading = false;
-            this.fetchSuppliers();
+            this.fetchDrivers();
           });
         });
     },
@@ -240,7 +234,7 @@ export default {
   computed: {},
 
   created() {
-    this.fetchSuppliers();
+    this.fetchDrivers();
   },
 };
 </script>

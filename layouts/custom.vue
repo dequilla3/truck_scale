@@ -28,7 +28,7 @@
                       ? getStyleForSelectedSubmod
                       : getDefaultStyleSubmod
                   "
-                  @click="onClickSubModule(item, itemSubModule, index)"
+                  @click="onClickSubModule(itemSubModule)"
                 >
                   <font-awesome-icon
                     class="pr-3"
@@ -55,17 +55,44 @@ export default {
         {
           module: "Admin",
           subModules: [
-            { subModule: "Supplier", selected: true, icon: "fa-truck-field" },
-            { subModule: "Items", selected: false, icon: "fa-cart-flatbed" },
-            { subModule: "Drivers", selected: false, icon: "fa-wheelchair" },
-            { subModule: "Users", selected: false, icon: "fa-user" },
+            {
+              subModule: "Supplier",
+              selected: true,
+              icon: "fa-truck-field",
+              route: "/admin/supplier",
+            },
+            {
+              subModule: "Items",
+              selected: false,
+              icon: "fa-cart-flatbed",
+              route: "/admin/items",
+            },
+            {
+              subModule: "Drivers",
+              selected: false,
+              icon: "fa-wheelchair",
+              route: "/admin/drivers",
+            },
+            {
+              subModule: "Users",
+              selected: false,
+              icon: "fa-user",
+              route: "/admin/user",
+            },
           ],
           icon: "user",
           selected: true,
         },
         {
           module: "Transaction",
-          subModules: [],
+          subModules: [
+            {
+              subModule: "Scale",
+              selected: true,
+              icon: "fa-weight-scale",
+              route: "/transaction/scale",
+            },
+          ],
           icon: "fa-tent-arrow-left-right",
           selected: true,
         },
@@ -74,14 +101,29 @@ export default {
   },
 
   methods: {
-    onClickSubModule(module, subModule, index) {
-      module.subModules.forEach((val, subIndex) => {
-        if (subIndex != index) {
-          val.selected = false;
-        }
+    onClickSubModule(subModule) {
+      //unselect al submod tabs
+      this.moduleList.forEach((val) => {
+        val.subModules.forEach((submod) => {
+          submod.selected = false;
+        });
       });
+
       subModule.selected = true;
+      localStorage.selectedModule = subModule.subModule;
+      this.$router.push({ path: subModule.route });
     },
+  },
+
+  created() {
+    this.moduleList.forEach((val) => {
+      const selectedSubmod = localStorage.selectedModule;
+      if (selectedSubmod) {
+        val.subModules.forEach((submod) => {
+          submod.selected = submod.subModule == selectedSubmod;
+        });
+      }
+    });
   },
 
   computed: {

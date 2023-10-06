@@ -1,7 +1,7 @@
 <template>
   <div>
     <div v-if="show" class="top-5 bg-black modal-overlay static"></div>
-    <div v-if="show" class="top-0 bg-black modal modal-lg rounded-md h-fit">
+    <div v-if="show" class="top-0 bg-black modal modal-select rounded-md h-fit">
       <button
         type="button"
         class="absolute top-5 right-5 text-2xl hover:drop-shadow-md"
@@ -10,7 +10,7 @@
         <font-awesome-icon v-on:click="hideModal()" :icon="['fas', 'xmark']" />
       </button>
 
-      <h1 class="font-semibold text-lg drop-shadow-md pt-10">
+      <h1 class="font-semibold text-lg drop-shadow-md">
         <slot name="title"></slot>
       </h1>
 
@@ -41,11 +41,11 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-.modal-lg {
-  width: 60%;
-  margin-top: 5%;
-  margin-left: 20%;
-  margin-right: 20%;
+.modal-select {
+  width: 50%;
+  margin-top: 8%;
+  margin-left: 25%;
+  margin-right: 25%;
   padding: 34px;
 }
 </style>
