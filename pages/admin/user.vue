@@ -1,16 +1,16 @@
 <template>
   <main-container>
-    <h1 class="font-semibold drop-shadow-md page_header text-xl">DRIVER</h1>
+    <h1 class="font-semibold drop-shadow-md page_header text-xl">USERS</h1>
     <br />
     <div class="flex">
       <button-primary
         @click.native="openModal('ADD')"
         class="text-xs mb-2"
-        text="Add Driver"
+        text="Add User"
       />
     </div>
     <!-- MAIN TABLE -->
-    <my-table :fields="driversFields" :items="drivers" action>
+    <my-table :fields="usersFields" :items="users" action>
       <template v-slot:actions="{ row }">
         <div class="flex">
           <btn-action
@@ -19,13 +19,6 @@
             label="Update"
             isVariantDefault
             icon="pen-to-square"
-          ></btn-action>
-
-          <btn-action
-            @click.native="doDeleteDriver(row)"
-            label="Delete"
-            isVariantDanger
-            icon="trash"
           ></btn-action>
         </div>
       </template>
@@ -53,10 +46,34 @@
             required
           />
 
+          <input-group
+            v-model="form.eid"
+            class="mt-2"
+            labelName="Employee ID"
+            inputType="text"
+            required
+          />
+
+          <input-group
+            v-model="form.pincode"
+            class="mt-2"
+            labelName="Pincode"
+            inputType="text"
+            required
+          />
+
+          <input-group
+            v-model="form.password"
+            class="mt-2"
+            labelName="Password"
+            inputType="text"
+            required
+          />
+
           <button-primary
             type="submit"
             class="w-44 text-sm mt-8"
-            :text="action == 'ADD' ? 'Add Driver' : 'Update Driver'"
+            :text="action == 'ADD' ? 'Add User' : 'Update User'"
             :load="isLoading"
           />
         </div>
@@ -80,14 +97,18 @@ export default {
         id: "",
         firstname: "",
         lastname: "",
+        password: "",
+        pincode: "",
       },
       action: "",
-      driversFields: [
+      usersFields: [
         { key: "firstname", label: "First Name" },
         { key: "lastname", label: "Last Name" },
+        { key: "eid", label: "Employee ID" },
+        { key: "pincode", label: "Pin Code" },
         { key: "actions", label: "Actions" },
       ],
-      drivers: [],
+      users: [],
     };
   },
 
@@ -98,27 +119,31 @@ export default {
       this.$refs.modal.showModal();
 
       if (action == "UPDATE") {
-        this.modalTitle = "Update Driver";
+        this.modalTitle = "Update User";
         //Populate data on fields
         this.form = {
           id: rowValue.id,
           firstname: rowValue.firstname,
           lastname: rowValue.lastname,
+          eid: rowValue.eid == null ? "" : rowValue.eid.toString(),
+          pincode: rowValue.pincode.toString(),
         };
         return;
       }
 
-      this.modalTitle = "Add Driver";
+      this.modalTitle = "Add User";
     },
 
-    async fetchDrivers() {
-      this.drivers = [];
-      this.$store.dispatch("fetchDrivers").then((res) => {
-        for (let driver of res) {
-          this.drivers.push({
-            id: driver.driverid,
-            firstname: driver.firstname,
-            lastname: driver.lastname,
+    async fetchUsers() {
+      this.Users = [];
+      this.$store.dispatch("fetchUsers").then((res) => {
+        for (let user of res) {
+          this.users.push({
+            id: user.userid,
+            firstname: user.fname,
+            lastname: user.lname,
+            eid: user.employeeid,
+            pincode: user.pincode,
           });
         }
       });
@@ -130,18 +155,18 @@ export default {
       this.$refs.confirmModal
         .showModal(
           "Please confirm!",
-          `Are you sure you want to ${this.action.toLocaleLowerCase()} this Driver?`,
+          `Are you sure you want to ${this.action.toLocaleLowerCase()} this User?`,
           "Yes, Proceed!"
         )
         .then((val) => {
           if (!val) return;
 
           if (this.action == "UPDATE") {
-            this.doUpdateDriver();
+            this.doUpdateUser();
             return;
           }
 
-          this.doAddDriver();
+          this.doAddUser();
         });
     },
 
@@ -153,14 +178,17 @@ export default {
       };
     },
 
-    doAddDriver() {
+    doAddUser() {
       this.isLoading = true;
       axios({
         method: "POST",
-        url: `${this.$axios.defaults.baseURL}/addDriver`,
+        url: `${this.$axios.defaults.baseURL}/addUser`,
         data: {
-          firstname: this.form.firstname.toUpperCase(),
-          lastname: this.form.lastname.toUpperCase(),
+          f_name: this.form.firstname.toUpperCase(),
+          l_name: this.form.lastname.toUpperCase(),
+          employee_id: this.form.eid,
+          e_password: this.form.password,
+          e_pincode: this.form.pincode,
         },
       }).then((res) => {
         this.$refs.msgBoxInfo.showAlert({
@@ -170,19 +198,22 @@ export default {
         });
 
         this.isLoading = false;
-        this.fetchDrivers();
+        this.fetchUsers();
         this.$refs.modal.hideModal();
       });
     },
 
-    doUpdateDriver() {
+    doUpdateUser() {
       this.isLoading = true;
       axios({
         method: "PUT",
-        url: `${this.$axios.defaults.baseURL}/updateDriver/${this.form.id}`,
+        url: `${this.$axios.defaults.baseURL}/editUser/${this.form.id}`,
         data: {
-          firstname: this.form.firstname.toUpperCase(),
-          lastname: this.form.lastname.toUpperCase(),
+          f_name: this.form.firstname.toUpperCase(),
+          l_name: this.form.lastname.toUpperCase(),
+          employee_id: this.form.eid,
+          e_password: this.form.password,
+          e_pincode: this.form.pincode,
         },
       }).then(
         (res) => {
@@ -192,7 +223,7 @@ export default {
             success: true,
           });
           this.isLoading = false;
-          this.fetchDrivers();
+          this.fetchUsers();
           this.$refs.modal.hideModal();
         },
         (err) => {
@@ -200,41 +231,12 @@ export default {
         }
       );
     },
-
-    doDeleteDriver(row) {
-      this.isLoading = true;
-
-      this.$refs.confirmModal
-        .showModal(
-          // @params: title, message, okTitle, danger
-          "Please confirm!",
-          "Are you sure you want to delete this Driver?",
-          "Yes, Proceed!",
-          true
-        )
-        .then((val) => {
-          if (!val) return;
-
-          axios({
-            method: "DELETE",
-            url: `${this.$axios.defaults.baseURL}/deleteDriver/${row.id}`,
-          }).then((res) => {
-            this.$refs.msgBoxInfo.showAlert({
-              title: res.data.message ?? res.data,
-              subTitle: "",
-              successDanger: true,
-            });
-            this.isLoading = false;
-            this.fetchDrivers();
-          });
-        });
-    },
   },
 
   computed: {},
 
   created() {
-    this.fetchDrivers();
+    this.fetchUsers();
   },
 };
 </script>

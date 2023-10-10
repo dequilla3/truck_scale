@@ -76,6 +76,32 @@ http://172.16.28.15:5000/updateTransaction/1
     "quantity": 100,
     "plate_no": "TEST_123"
 }
+
+POST
+http://172.16.28.15:5000/addUser
+{
+    "f_name":"item",
+    "l_name":"lastname",
+    "employee_id": 12345,
+    "e_password": "test",
+    "e_pincode":4444
+}
+PUT/EDIT
+http://172.16.28.15:5000/editUser/:id
+{
+    "f_name":"item",
+    "l_name":"lastname",
+    "employee_id": 12345,
+    "e_password": "test",
+    "e_pincode":4444
+}
+
+http://172.16.28.15:5000/login
+{
+    "e_employee":154151800,
+    "passwords": "1234"
+}
+
 DELETE
 http://172.16.28.15:5000/deleteSupplier/:id
 http://172.16.28.15:5000/deleteItem/:id

@@ -66,6 +66,25 @@ export default {
       });
     },
 
+    async fetchRawTransactions({ commit }) {
+      return axios({
+        method: "GET",
+        url: `${this.$axios.defaults.baseURL}/getAllTransactions`
+      }).then(res => {
+        return res.data;
+      });
+    },
+
+    async fetchUsers({ commit }) {
+      return axios({
+        method: "GET",
+        url: `${this.$axios.defaults.baseURL}/getUsers`
+      }).then(res => {
+        return res.data;
+      });
+    },
+
+
 
   }
 };

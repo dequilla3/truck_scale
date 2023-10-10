@@ -1,6 +1,6 @@
 <template>
   <div class="">
-    <div class="sidebar w-64 absolute shadow-md">
+    <div class="sidebar w-64 absolute shadow-md dontPrint">
       <div class="text-3xl font-bold drop-shadow-lg text-center pt-10 pb-10">
         <a href="/admin/supplier" class="pt-6 pb-6 primary-color">
           <font-awesome-icon :icon="['fas', 'weight-scale']" /> Truck Scale</a
@@ -38,6 +38,13 @@
                 </li>
               </div>
             </Transition>
+          </li>
+
+          <li
+            class="li-sidebar pb-3 mt-5 text-base hover:drop-shadow-md font-bold"
+            @click="onLogout()"
+          >
+            <font-awesome-icon :icon="['fas', 'power-off']" /> Logout
           </li>
         </ul>
       </div>
@@ -96,11 +103,28 @@ export default {
           icon: "fa-tent-arrow-left-right",
           selected: true,
         },
+        {
+          module: "Report",
+          subModules: [
+            {
+              subModule: "All Transaction",
+              selected: true,
+              icon: "file",
+              route: "/report/alltransaction",
+            },
+          ],
+          icon: "chart-line",
+          selected: true,
+        },
       ],
     };
   },
 
   methods: {
+    onLogout() {
+      this.$router.push({ path: "/" });
+      localStorage.clear();
+    },
     onClickSubModule(subModule) {
       //unselect al submod tabs
       this.moduleList.forEach((val) => {

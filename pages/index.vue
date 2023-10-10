@@ -4,8 +4,18 @@
       <p class="text-left text-3xl mb-10 drop-shadow-md">Truck Scale</p>
 
       <div class="text-sm">
-        <input-group class="mt-2" labelName="Username" inputType="text" />
-        <input-group class="mt-4" labelName="Password" inputType="password" />
+        <input-group
+          v-model="uname"
+          class="mt-2"
+          labelName="Username"
+          inputType="number"
+        />
+        <input-group
+          v-model="pw"
+          class="mt-4"
+          labelName="Password"
+          inputType="password"
+        />
 
         <button-primary
           type="submit"
@@ -15,17 +25,44 @@
         ></button-primary>
       </div>
     </form>
+    <MessageBoxInfo ref="msgBoxInfo" />
   </div>
 </template>
 
 <script>
+import axios from "axios";
 export default {
   name: "IndexPage",
+  data() {
+    return {
+      uname: "",
+      pw: "",
+    };
+  },
+
   methods: {
     onSubmit(e) {
       e.preventDefault();
-      this.$router.push({ path: "/admin/supplier" });
-      localStorage.selectedModule = "Supplier";
+      axios({
+        method: "POST",
+        url: `${this.$axios.defaults.baseURL}/login`,
+        data: {
+          e_employee: this.uname,
+          passwords: this.pw,
+        },
+      }).then((res) => {
+        if (res.data.message) {
+          localStorage.empId = 23135434;
+          this.$router.push({ path: "/admin/supplier" });
+          localStorage.selectedModule = "Supplier";
+        } else {
+          this.$refs.msgBoxInfo.showAlert({
+            title: res.data,
+            subTitle: "",
+            danger: true,
+          });
+        }
+      });
     },
   },
 };

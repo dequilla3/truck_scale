@@ -58,3 +58,47 @@ $box_shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 ::-webkit-scrollbar-thumb {
   background: $primary_color;
 }
+
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance:    textfield;
+  appearance:         textfield;
+}
+
+.print {
+  display: none;
+}
+
+@media print {
+  td,th{
+    border-top: 1px double #000000;
+    border-right: 1px double #000000;
+    border-bottom: 1px solid #000000;
+    border-left: 1px double #000000;
+  }
+  .main-container {
+    padding: 20px;
+    margin-top: 20px;
+    margin-left: 20px;
+    margin-right: 20px;
+    box-shadow: none;
+    z-index: -1;
+    zoom: 55%;
+  }
+
+  .dontPrint {
+    display: none;
+  }
+
+  .print {
+    display: block;
+  }
+}

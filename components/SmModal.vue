@@ -42,10 +42,10 @@ export default {
 </script>
 <style lang="scss" scoped>
 .modal-select {
-  width: 50%;
+  width: 40%;
   margin-top: 8%;
-  margin-left: 25%;
-  margin-right: 25%;
+  margin-left: 30%;
+  margin-right: 30%;
   padding: 34px;
 }
 </style>

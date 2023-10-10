@@ -5,7 +5,7 @@
     <div class="flex">
       <button-primary
         @click.native="openModal('ADD')"
-        class="text-sm mb-2"
+        class="text-xs mb-2"
         text="Add Supplier"
       />
     </div>
@@ -22,7 +22,7 @@
           ></btn-action>
 
           <btn-action
-            @click.native="doDeleteDriver(row)"
+            @click.native="doDeleteSupplier(row)"
             label="Delete"
             isVariantDanger
             icon="trash"
@@ -226,7 +226,7 @@ export default {
             url: `${this.$axios.defaults.baseURL}/deleteSupplier/${row.id}`,
           }).then((res) => {
             this.$refs.msgBoxInfo.showAlert({
-              title: "Successfully Deleted!",
+              title: res.data.message ?? res.data,
               subTitle: "",
               successDanger: true,
             });

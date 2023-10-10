@@ -43,6 +43,7 @@ export default {
   },
 
   server: {
+    host: "172.16.28.10",
     port: 7000,
   },
 

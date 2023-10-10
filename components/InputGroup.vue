@@ -7,7 +7,6 @@
         v-on:input="$emit('input', $event.target.value)"
         v-on:change="$emit('change', $event.target.value)"
         :type="inputType"
-        id="inp"
         name="inp"
         class="w-full border border-gray-300 py-2 px-3 focus:outline-none focus:border-blue-500"
         autocomplete="off"

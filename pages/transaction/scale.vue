@@ -5,7 +5,7 @@
     <div class="flex">
       <button-primary
         @click.native="openModal('PROCESS')"
-        class="text-sm mb-2"
+        class="text-xs mb-2"
         text="New Transaction"
       />
     </div>
@@ -19,6 +19,14 @@
             label="Update"
             isVariantDefault
             icon="pen-to-square"
+          ></btn-action>
+
+          <btn-action
+            class="mr-1"
+            @click.native="openOutBoundModal(row)"
+            label="Outbound"
+            isVariantDefault
+            icon="truck-arrow-right"
           ></btn-action>
         </div>
       </template>
@@ -169,7 +177,7 @@
     </lg-modal>
 
     <!-- SELECT MODAL -->
-    <select-modal ref="selectModal">
+    <sm-modal ref="selectModal">
       <template v-slot:title>
         <div>{{ selectModalTitle }}</div>
       </template>
@@ -187,7 +195,31 @@
           </div>
         </template>
       </my-table>
-    </select-modal>
+    </sm-modal>
+
+    <!-- OUTBOUND MODAL -->
+    <sm-modal ref="outBoundModal">
+      <template v-slot:title>
+        <div>OUTBOUND</div>
+      </template>
+
+      <div class="text-xs">
+        <form @submit="onSUbmitOutBoundWt">
+          <input-group
+            v-model="outBoundWt"
+            class="mt-2 w-full"
+            labelName="Input Outbound Weight"
+            inputType="text"
+            required
+          />
+
+          <button class="mt-2" type="submit" :class="getBtnSelecStyle">
+            <font-awesome-icon :icon="['fas', 'plus']" />
+            ADD OUTBOUND WEIGHT
+          </button>
+        </form>
+      </div>
+    </sm-modal>
 
     <MessageBoxInfo ref="msgBoxInfo" />
     <ConfirmationModal ref="confirmModal" />
@@ -200,6 +232,7 @@ export default {
   layout: "custom",
   data() {
     return {
+      userId: "",
       modalTitle: "",
       selectModalTitle: "",
       isLoading: false,
@@ -273,9 +306,8 @@ export default {
       tFields: [
         { key: "company_name", label: "Transaction Type" },
         { key: "subtranstype_name", label: "Sub-Transaction Type" },
-        { key: "firs_tname", label: "First Name" },
-        { key: "last_name", label: "Last Name" },
-        { key: "item_name", label: "Item Name" },
+        { key: "fname", label: "Name" },
+        { key: "quantity", label: "QTY" },
         { key: "uom", label: "UOM" },
         { key: "plate_no", label: "Plate No." },
         { key: "inbound_weight", label: "In-bound weight" },
@@ -285,10 +317,51 @@ export default {
         { key: "actions", label: "Actions" },
       ],
       trans: [],
+      selectedRowOutbound: [],
+      outBoundWt: "",
     };
   },
 
   methods: {
+    openOutBoundModal(row) {
+      this.selectedRowOutbound = row;
+      this.$refs.outBoundModal.showModal();
+    },
+    onSUbmitOutBoundWt(e) {
+      e.preventDefault();
+
+      console.log(
+        `${this.$axios.defaults.baseURL}/addOutboundWeight/${this.selectedRowOutbound.transactionid}`
+      );
+
+      axios({
+        method: "POST",
+        url: `${this.$axios.defaults.baseURL}/addOutboundWeight`,
+        data: {
+          weight: parseInt(this.outBoundWt),
+          user_id: this.userId,
+          transId: this.selectedRowOutbound.transactionid,
+        },
+      }).then(
+        (res) => {
+          this.$refs.msgBoxInfo.showAlert({
+            title: "Successfully Added outbound weight!",
+            subTitle: "",
+            success: true,
+          });
+          this.$refs.outBoundModal.hideModal();
+          this.fetchTransactions();
+        },
+        (err) => {
+          this.$refs.msgBoxInfo.showAlert({
+            title: err,
+            subTitle: "",
+            danger: true,
+          });
+          console.log(err);
+        }
+      );
+    },
     openSelectModal(select) {
       this.modalDialogSelected = select;
 
@@ -296,39 +369,24 @@ export default {
         case "TRANS_TYPE":
           this.selectModalTitle = "Transaction Type";
           this.$refs.selectModal.showModal();
-          this.$store.dispatch("fetchTransType").then((res) => {
-            this.transTypes = res;
-          });
           break;
         case "SUB_TRANS_TYPE":
           this.selectModalTitle = "Sub-Transaction Type";
           this.$refs.selectModal.showModal();
-          this.$store.dispatch("fetchSubTrans").then((res) => {
-            this.subTransTypes = res;
-          });
           break;
         case "DRIVER":
           this.selectModalTitle = "Drivers";
           this.$refs.selectModal.showModal();
-          this.$store.dispatch("fetchDrivers").then((res) => {
-            this.driverList = res;
-          });
           break;
 
         case "SUPPLIER":
           this.selectModalTitle = "Suppliers";
           this.$refs.selectModal.showModal();
-          this.$store.dispatch("fetchSuppliers").then((res) => {
-            this.supplierList = res;
-          });
           break;
 
         case "ITEM":
           this.selectModalTitle = "Items";
           this.$refs.selectModal.showModal();
-          this.$store.dispatch("fetchItem").then((res) => {
-            this.itemList = res;
-          });
           break;
       }
     },
@@ -374,28 +432,84 @@ export default {
       this.$refs.selectModal.hideModal();
     },
 
-    openModal(action, rowValue) {
+    async openModal(action, rowValue) {
       this.action = action;
       this.resetModalFields();
       this.$refs.modal.showModal();
 
       if (action == "UPDATE") {
-        this.modalTitle = "Update Transaction";
-        //Populate data on fields
-        this.form = {
-          id: rowValue.id,
-          fname: rowValue.name.split(" ")[0],
-          lname: rowValue.name.split(" ")[1],
-          address: rowValue.address,
-        };
+        await this.fetchRawTransactions().then((rawTrans) => {
+          let selectedTrans;
+          rawTrans.map((mapTrans) => {
+            if (mapTrans.transactionid == rowValue.transactionid)
+              selectedTrans = mapTrans;
+          });
+
+          const driverName = `${
+            this.getDriverById(selectedTrans.driverid)[0].firstname
+          } ${this.getDriverById(selectedTrans.driverid)[0].lastname}`;
+
+          const suppliersName = `${
+            this.getSupplierId(selectedTrans.supplierid)[0].firs_tname
+          } ${this.getSupplierId(selectedTrans.supplierid)[0].last_name}`;
+
+          const itemName = `${this.getItemById(selectedTrans.itemid)[0].item_name}`;
+
+          this.modalTitle = "Update Transaction";
+
+          //insert transaction details on update
+          this.transId = selectedTrans.transactionid;
+          this.qty = rowValue.quantity;
+          this.plate = rowValue.plate_no;
+          this.inBoundW = rowValue.inbound_weight;
+          this.transType = {
+            id: selectedTrans.transtypeid,
+            desc: rowValue.company_name,
+          };
+          this.subTransType = {
+            id: selectedTrans.subtranstypeid,
+            desc: rowValue.subtranstype_name,
+          };
+          this.driver = {
+            id: selectedTrans.driverid,
+            desc: driverName,
+          };
+
+          this.supplier = {
+            id: selectedTrans.supplierid,
+            desc: suppliersName,
+          };
+
+          this.item = {
+            id: selectedTrans.itemid,
+            desc: itemName,
+          };
+        });
         return;
       }
-
       this.modalTitle = "Create Transaction";
+    },
+
+    validinputs() {
+      return (
+        this.transType.id != "" &&
+        this.subTransType.id &&
+        this.driver.id != "" &&
+        this.supplier.id != "" &&
+        this.item.id != ""
+      );
     },
 
     async onSubmitModal(e) {
       e.preventDefault();
+      if (!this.validinputs()) {
+        this.$refs.msgBoxInfo.showAlert({
+          title: "Please fill in required fields!",
+          subTitle: "",
+          danger: true,
+        });
+        return;
+      }
 
       this.$refs.confirmModal
         .showModal(
@@ -416,11 +530,31 @@ export default {
     },
 
     resetModalFields() {
-      this.form = {
+      this.transId = "";
+      this.qty = "";
+      this.plate = "";
+      this.inBoundW = "";
+      this.transType = {
         id: "",
-        fname: "",
-        lname: "",
-        address: "",
+        desc: "",
+      };
+      this.subTransType = {
+        id: "",
+        desc: "",
+      };
+      this.driver = {
+        id: "",
+        desc: "",
+      };
+
+      this.supplier = {
+        id: "",
+        desc: "",
+      };
+
+      this.item = {
+        id: "",
+        desc: "",
       };
     },
 
@@ -435,20 +569,32 @@ export default {
           driver_id: this.driver.id,
           supplier_id: this.supplier.id,
           item_id: this.item.id,
-          quantity: this.quantity,
+          quantity: parseInt(this.qty),
           plate_no: this.plate.toUpperCase(),
         },
       }).then(
         (res) => {
-          this.$refs.msgBoxInfo.showAlert({
-            title: "Successfully Process!",
-            subTitle: "",
-            success: true,
-          });
+          // add inbound wt
+          axios({
+            method: "POST",
+            url: `${this.$axios.defaults.baseURL}/addInboundWeight`,
+            data: {
+              weight: this.inBoundW,
+              user_id: this.userId,
+              transId: res.data.others.rows[0].transaction_id,
+            },
+          }).then(() => {
+            //success
+            this.$refs.msgBoxInfo.showAlert({
+              title: "Successfully Process!",
+              subTitle: "",
+              success: true,
+            });
 
-          this.isLoading = false;
-          this.fetchTransactions();
-          this.$refs.modal.hideModal();
+            this.isLoading = false;
+            this.fetchTransactions();
+            this.$refs.modal.hideModal();
+          });
         },
         (err) => {
           this.$refs.msgBoxInfo.showAlert({
@@ -466,11 +612,15 @@ export default {
       this.isLoading = true;
       axios({
         method: "PUT",
-        url: `${this.$axios.defaults.baseURL}/updateSupplier/${this.form.id}`,
+        url: `${this.$axios.defaults.baseURL}/updateTransaction/${this.transId}`,
         data: {
-          firstname: this.form.fname.toUpperCase(),
-          lastname: this.form.lname.toUpperCase(),
-          address: this.form.address.toUpperCase(),
+          trans_type: this.transType.id,
+          subtrans_type: this.subTransType.id,
+          driver_id: this.driver.id,
+          supplier_id: this.supplier.id,
+          item_id: this.item.id,
+          quantity: parseInt(this.qty),
+          plate_no: this.plate.toUpperCase(),
         },
       }).then((res) => {
         this.$refs.msgBoxInfo.showAlert({
@@ -484,10 +634,76 @@ export default {
       });
     },
 
+    async fetchRawTransactions() {
+      return this.$store.dispatch("fetchRawTransactions");
+    },
+
     async fetchTransactions() {
+      this.trans = [];
       this.$store.dispatch("fetchTransactions").then((res) => {
-        this.trans = res;
-        res.map((val) => {});
+        res.map((val) => {
+          val.trans_date = new Date(val.trans_date).toLocaleDateString("en-US");
+          val.fname = `${val.firs_tname} ${val.last_name}`;
+          if (val.transactionid != null) this.trans.push(val);
+        });
+      });
+    },
+
+    async fetchTransType() {
+      this.$store.dispatch("fetchTransType").then((res) => {
+        this.transTypes = res;
+      });
+    },
+
+    async fetchSubTrans() {
+      this.$store.dispatch("fetchSubTrans").then((res) => {
+        this.subTransTypes = res;
+      });
+    },
+
+    async fetchDrivers() {
+      this.$store.dispatch("fetchDrivers").then((res) => {
+        this.driverList = res;
+      });
+    },
+
+    async fetchSuppliers() {
+      this.$store.dispatch("fetchSuppliers").then((res) => {
+        this.supplierList = res;
+      });
+    },
+
+    async fetchItem() {
+      this.$store.dispatch("fetchItem").then((res) => {
+        this.itemList = res;
+      });
+    },
+
+    getUserByEmpId() {
+      return this.$store.dispatch("fetchUsers").then((res) => {
+        for (let user of res) {
+          if (user.employeeid == localStorage.empId) {
+            return user;
+          }
+        }
+      });
+    },
+
+    getDriverById(id) {
+      return this.driverList.filter((val) => {
+        return val.driverid == id;
+      });
+    },
+
+    getSupplierId(id) {
+      return this.supplierList.filter((val) => {
+        return val.supplierid == id;
+      });
+    },
+
+    getItemById(id) {
+      return this.itemList.filter((val) => {
+        return val.itemid == id;
       });
     },
   },
@@ -537,6 +753,16 @@ export default {
 
   created() {
     this.fetchTransactions();
+    this.fetchTransType();
+    this.fetchSubTrans();
+    this.fetchDrivers();
+    this.fetchSuppliers();
+    this.fetchItem();
+
+    // get user by emp id
+    this.getUserByEmpId().then((user) => {
+      this.userId = user.userid;
+    });
   },
 };
 </script>

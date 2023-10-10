@@ -5,7 +5,7 @@
     <div class="flex">
       <button-primary
         @click.native="openModal('ADD')"
-        class="text-sm mb-2"
+        class="text-xs mb-2"
         text="Add Item"
       />
     </div>
@@ -22,7 +22,7 @@
           ></btn-action>
 
           <btn-action
-            @click.native="doDeleteDriver(row)"
+            @click.native="doDeleteItem(row)"
             label="Delete"
             isVariantDanger
             icon="trash"
@@ -199,13 +199,13 @@ export default {
       });
     },
 
-    doDeleteSupplier(row) {
+    doDeleteItem(row) {
       this.isLoading = true;
       this.$refs.confirmModal
         .showModal(
           // @params: title:string, message:string, okTitle:string, danger:boolean
           "Please confirm!",
-          "Are you sure you want to delete Supplier?",
+          "Are you sure you want to delete Items?",
           "Yes, Proceed!",
           true
         )
@@ -216,8 +216,9 @@ export default {
             method: "DELETE",
             url: `${this.$axios.defaults.baseURL}/deleteItem/${row.id}`,
           }).then((res) => {
+            console.log(res);
             this.$refs.msgBoxInfo.showAlert({
-              title: "Successfully Deleted!",
+              title: res.data.message ?? res.data,
               subTitle: "",
               successDanger: true,
             });
